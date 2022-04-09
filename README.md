@@ -1,7 +1,7 @@
 # timeline
-A tool likes time command, which outputs more real-time log.
+A tool likes 'time' command, which outputs time in every line log.
 
-latest version: 0.2 beta.
+latest version: 0.3 beta.
 
 quick preview:
 ```
@@ -20,6 +20,7 @@ cost time: 0m3.225s, return code: 0
 ```
 
 # changlog
+2022.04.09 0.3 beta: support print every sec when no output log
 
 2022.04.04 0.2 beta: support specified time format and improve time accuracy
 
@@ -31,7 +32,7 @@ sh build.sh
 ```
 You will get:
 ```
-+ gcc timeline.c -o timeline -std=gnu99 -Wall -Werror
++ gcc timeline.c -o timeline -std=gnu99 -lpthread -Wall -Werror
 + echo 'build success'
 build success
 ```
@@ -48,7 +49,7 @@ export PATH=/path/to/timeline/dir:$PATH
 # usage
 ```
 A tool likes 'time' command, which outputs time in every line log.
-version: 0.2 beta.
+version: 0.3 beta.
 
 Usage:
 	timeline [cmd]
@@ -58,6 +59,7 @@ Exeample:
 	timeline ping baidu.com
 Config:
 	 env: TIMELINE_FORMAT, defualt is '%Y-%m-%d %H:%M:%S'
+	 env: PRINT_EVERY_SEC, defualt is none
 ```
 
 # why timeline is good?
@@ -79,41 +81,43 @@ sleep 1
 echo "one"
 sleep 1
 echo "!!!"
-sleep 
+sleep 5
 ```
 
 use 'time' cmd:
 
 ```
-$time ./demo-cmd.sh 
+$ time ./demo-cmd.sh 
 You
 are
 the
 one
 !!!
 
-real    0m5.013s
-user    0m0.005s
-sys     0m0.001s
+real	0m9.009s
+user	0m0.003s
+sys	0m0.004s
 ```
 
 use 'timeline' cmd:
 
 ```
-$timeline ./demo-cmd.sh 
-[2022-04-04 13:12:24 0m0.002s] You
-[2022-04-04 13:12:24 0m1.003s] are
-[2022-04-04 13:12:25 0m2.004s] the
-[2022-04-04 13:12:26 0m3.006s] one
-[2022-04-04 13:12:27 0m4.007s] !!!
-[2022-04-04 13:12:28 0m5.008s] <<< the end
+$ timeline ./demo-cmd.sh 
+[2022-04-09 21:49:07 0m00.002s] You
+[2022-04-09 21:49:08 0m01.003s] are
+[2022-04-09 21:49:09 0m02.005s] the
+[2022-04-09 21:49:10 0m03.007s] one
+[2022-04-09 21:49:11 0m04.008s] !!!
+[2022-04-09 21:49:16 0m09.010s] >>> the end
 
-cost time: 0m5.008s, return code: 0
+cost time: 0m09.010s, return code: 0
 ```
 
 timeline is very helpful, especially when using 'make' during compilation.
 
 # advanced config
+
+## TIMELINE_FORMAT
 
 You can specify the time display format
 
@@ -127,14 +131,14 @@ result:
 
 ```
 $ timeline ./demo-cmd.sh
-[0m0.003s] You
-[0m1.004s] are
-[0m2.017s] the
-[0m3.019s] one
-[0m4.020s] !!!
-[0m5.021s] <<< the end
+[0m00.002s] You
+[0m01.004s] are
+[0m02.005s] the
+[0m03.006s] one
+[0m04.008s] !!!
+[0m09.009s] >>> the end
 
-cost time: 0m5.021s, return code: 0
+cost time: 0m09.009s, return code: 0
 ```
 
 only show clock and cost time:
@@ -146,12 +150,36 @@ result:
 
 ```
 $ timeline ./demo-cmd.sh
-[13:16:27 0m0.002s] You
-[13:16:27 0m1.003s] are
-[13:16:28 0m2.004s] the
-[13:16:29 0m3.006s] one
-[13:16:30 0m4.007s] !!!
-[13:16:31 0m5.008s] <<< the end
+[21:50:21 0m00.003s] You
+[21:50:22 0m01.005s] are
+[21:50:23 0m02.006s] the
+[21:50:24 0m03.008s] one
+[21:50:25 0m04.010s] !!!
+[21:50:30 0m09.011s] >>> the end
 
-cost time: 0m5.008s, return code: 0
+cost time: 0m09.011s, return code: 0
+```
+
+## PRINT_EVERY_SEC
+
+when a cmd long time ouput log, you will also not know how long escape, so you can set:
+
+```
+export PRINT_EVERY_SEC=1
+```
+you will get:
+
+```
+[2022-04-09 21:51:59 0m00.002s] You
+[2022-04-09 21:52:00 0m01.003s] are
+[2022-04-09 21:52:01 0m02.005s] the
+[2022-04-09 21:52:02 0m03.006s] one
+[2022-04-09 21:52:03 0m04.007s] !!!
+[2022-04-09 21:52:05 0m06.000s] >>>
+[2022-04-09 21:52:06 0m07.000s] >>>
+[2022-04-09 21:52:07 0m08.000s] >>>
+[2022-04-09 21:52:08 0m09.000s] >>>
+[2022-04-09 21:52:08 0m09.009s] >>> the end
+
+cost time: 0m09.009s, return code: 0
 ```

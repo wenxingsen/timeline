@@ -8,4 +8,4 @@ sleep 1
 echo "one"
 sleep 1
 echo "!!!"
-sleep 1
+sleep 5
