@@ -23,6 +23,8 @@ long ms_duration;
 long ms_duration_last = 0;
 char time_cost[BUFF_MAX];
 
+pthread_mutex_t print_mutex;
+
 void get_now_time_str(char *timeStr)
 {
     time_t now = time(NULL);
@@ -45,20 +47,20 @@ void print_line_log(char* str_buffer, int update_ms_duration)
     gettimeofday(&timeval_end, NULL);
     long ms_duration_ = ((timeval_end.tv_sec-timeval_begin.tv_sec) * 1000000 + (timeval_end.tv_usec-timeval_begin.tv_usec)) / 1000;
     human_time(ms_duration_, time_cost);
-	if (strlen(now_time) > 0) 
-	{
-		printf("[%s %s] %s", now_time, time_cost, str_buffer);
-	}
-	else
-	{
-		printf("[%s] %s", time_cost, str_buffer);
-	}
-
-	
-	if (update_ms_duration == 1)
-	{
-		ms_duration = ms_duration_;
-	}
+    pthread_mutex_lock(&print_mutex);
+    if(strlen(now_time) > 0) 
+    {
+        printf("[%s %s] %s", now_time, time_cost, str_buffer);
+    }
+    else
+    {
+        printf("[%s] %s", time_cost, str_buffer);
+    }
+    pthread_mutex_unlock(&print_mutex);
+    if (update_ms_duration == 1)
+    {
+        ms_duration = ms_duration_;
+    }
 }
 
 void show_help()
@@ -71,7 +73,7 @@ void show_help()
     printf("\ttimeline ping baidu.com\n");
     printf("Config:\n");
     printf("\t env: TIMELINE_FORMAT, defualt is '%s'\n", DEFAULT_TIMELINE_FORMAT);
-	printf("\t env: PRINT_EVERY_SEC, defualt is none\n");
+    printf("\t env: PRINT_EVERY_SEC, defualt is none\n");
 }
 
 void thread_print_every_sec(void* arg)
@@ -96,6 +98,8 @@ int timeline_main(int argc, char *argv[])
         show_help();
         return 0;
     }
+
+    pthread_mutex_init(&print_mutex, NULL);
 
     char* timeline_format = getenv("TIMELINE_FORMAT");
     if(timeline_format == NULL) 
@@ -153,11 +157,11 @@ int timeline_main(int argc, char *argv[])
 
     print_line_log(">>> the end", 1); 
 	
-	if (thread_flag != 0)
-	{
-		thread_flag = 0;
-		pthread_join(every_time_pid, NULL);
-	}
+    if (thread_flag != 0)
+    {
+        thread_flag = 0;
+        pthread_join(every_time_pid, NULL);
+    }
 
     int return_code = WEXITSTATUS(pclose(fp));
     
