@@ -8,7 +8,7 @@
 #include <pthread.h>
 
 #define BUFF_MAX 1024
-#define TIMELINE_VERSION "0.3 beta"
+#define TIMELINE_VERSION "1.0"
 #define DEFAULT_TIMELINE_FORMAT "%Y-%m-%d %H:%M:%S"
 
 char str_timeline_format[BUFF_MAX];
@@ -22,6 +22,8 @@ struct timeval timeval_begin, timeval_end;
 long ms_duration;
 long ms_duration_last = 0;
 char time_cost[BUFF_MAX];
+
+int print_delta_time = 0;
 
 pthread_mutex_t print_mutex;
 
@@ -48,14 +50,21 @@ void print_line_log(char* str_buffer, int update_ms_duration)
     long ms_duration_ = ((timeval_end.tv_sec-timeval_begin.tv_sec) * 1000000 + (timeval_end.tv_usec-timeval_begin.tv_usec)) / 1000;
     human_time(ms_duration_, time_cost);
     pthread_mutex_lock(&print_mutex);
-    if(strlen(now_time) > 0) 
+
+    char delta_time[BUFF_MAX] = {0};
+
+    if(print_delta_time == 1)
     {
-        printf("[%s %s] %s", now_time, time_cost, str_buffer);
+        sprintf(delta_time, " +%.3fs", (ms_duration_ - ms_duration)/1000.0);
     }
-    else
+
+    char time_split[BUFF_MAX] = {0};
+    if(strlen(now_time)>0)
     {
-        printf("[%s] %s", time_cost, str_buffer);
+        sprintf(time_split, " ");
     }
+    printf("[%s%s%s%s] %s", now_time, time_split, time_cost, delta_time, str_buffer);
+
     pthread_mutex_unlock(&print_mutex);
     if (update_ms_duration == 1)
     {
@@ -72,8 +81,10 @@ void show_help()
     printf("\ttimeline ./demo-cmd.sh\n");
     printf("\ttimeline ping baidu.com\n");
     printf("Config:\n");
-    printf("\t env: TIMELINE_FORMAT, defualt is '%s'\n", DEFAULT_TIMELINE_FORMAT);
-    printf("\t env: PRINT_EVERY_SEC, defualt is none\n");
+    printf("\tenv: TIMELINE_FORMAT, default is '%s'\n", DEFAULT_TIMELINE_FORMAT);
+    printf("\tenv: PRINT_EVERY_SEC, default is none\n");
+    printf("\tenv: PRINT_DELTA_TIME, default is none\n\n");
+    printf("github url: https://github.com/wenxingsen/timeline\n\n");
 }
 
 void thread_print_every_sec(void* arg)
@@ -118,12 +129,19 @@ int timeline_main(int argc, char *argv[])
         print_every_sec = atoi(str_print_every_sec);
         if(print_every_sec > 0)
         {
-			thread_flag = 1;
+            thread_flag = 1;
             if (pthread_create(&every_time_pid, NULL, (void*)thread_print_every_sec, NULL) != 0) {
                 printf("[Warning] pthread_create error");
             }
         }
     }
+
+    char* str_print_delta_time = getenv("PRINT_DELTA_TIME");
+    if (str_print_delta_time != NULL)
+    {
+        print_delta_time = atoi(str_print_delta_time);
+    }
+
  
     char run_cmd[BUFF_MAX] = {};
     int index = 0;
@@ -155,7 +173,7 @@ int timeline_main(int argc, char *argv[])
         print_line_log(buffer, 1);
     }
 
-    print_line_log(">>> the end", 1); 
+    print_line_log("<<< the end", 1); 
 	
     if (thread_flag != 0)
     {

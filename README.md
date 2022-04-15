@@ -1,7 +1,7 @@
 # timeline
 A tool likes 'time' command, which outputs time in every line log.
 
-latest version: 0.3 beta.
+latest version: 1.0
 
 quick preview:
 ```
@@ -20,6 +20,8 @@ cost time: 0m3.225s, return code: 0
 ```
 
 # changlog
+2022.04.09 1.0     : support print delta time
+
 2022.04.09 0.3 beta: support print every sec when no output log
 
 2022.04.04 0.2 beta: support specified time format and improve time accuracy
@@ -49,7 +51,7 @@ export PATH=/path/to/timeline/dir:$PATH
 # usage
 ```
 A tool likes 'time' command, which outputs time in every line log.
-version: 0.3 beta.
+version: 1.0.
 
 Usage:
 	timeline [cmd]
@@ -58,8 +60,11 @@ Exeample:
 	timeline ./demo-cmd.sh
 	timeline ping baidu.com
 Config:
-	 env: TIMELINE_FORMAT, defualt is '%Y-%m-%d %H:%M:%S'
-	 env: PRINT_EVERY_SEC, defualt is none
+	env: TIMELINE_FORMAT, default is '%Y-%m-%d %H:%M:%S'
+	env: PRINT_EVERY_SEC, default is none
+	env: PRINT_DELTA_TIME, default is none
+
+github url: https://github.com/wenxingsen/timeline
 ```
 
 # why timeline is good?
@@ -182,4 +187,28 @@ you will get:
 [2022-04-09 21:52:08 0m09.009s] >>> the end
 
 cost time: 0m09.009s, return code: 0
+```
+
+## PRINT_DELTA_TIME
+
+The timeline tool displays the difference between the two commands
+
+```
+export TIMELINE_FORMAT="" # not required
+export PRINT_DELTA_TIME=1
+```
+
+you will get:
+
+```
+$ timeline ./demo-cmd.sh
+[0m00.002s +0.002s] You
+[0m01.003s +1.001s] are
+[0m02.005s +1.002s] the
+[0m03.006s +1.001s] one
+[0m04.008s +1.002s] !!!
+[0m09.010s +5.002s] <<< the end
+
+cost time: 0m09.010s, return code: 0
+
 ```
